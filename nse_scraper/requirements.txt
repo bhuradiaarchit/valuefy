@@ -1,0 +1,6 @@
+selenium
+webdriver-manager
+requests
+pandas
+mysql-connector-python
+schedule
