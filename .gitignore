@@ -1,8 +1,7 @@
-# Ignore Python cache
+.env
+.venv/
 __pycache__/
 *.log
 logs/
 
-
-# Ignore environment files
-.env
+.vscode/
