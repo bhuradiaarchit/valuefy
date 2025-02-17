@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  scraping_service:
+    build: ./nse_scraper
+    container_name: nse_scraper_app
+    restart: always
+    depends_on:
+      - mysql_db
+    env_file:
+      - .env  # Load environment variables securely
+    volumes:
+      - .:/app
+    networks:
+      - app_network
+
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+  flask_app:
+    build: ./server
+    container_name: flask_auth
+    restart: always
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
