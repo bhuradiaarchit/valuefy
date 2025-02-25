@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  scraping_service:
-    build: ./nse_scraper
-    container_name: nse_scraper_app
-    restart: always
-    depends_on:
-      - mysql_db
-    env_file:
-      - .env  # Load environment variables securely
-    volumes:
-      - .:/app
-    networks:
-      - app_network
-
   mysql_db:
     image: mysql:8.0
     container_name: mysql_container
@@ -22,9 +9,28 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Internal & External MySQL on port 3307
+    command: --port=3307  # Ensure MySQL listens on 3307 inside container
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3307"]
+      interval: 10s
+      retries: 5
+
+  scraping_service:
+    build: ./nse_scraper
+    container_name: nse_scraper_app
+    restart: always
+    depends_on:
+      mysql_db:
+        condition: service_healthy  # Ensures MySQL is ready
+    env_file:
+      - .env
+    volumes:
+      - ./nse_scraper:/app
     networks:
       - app_network
 
@@ -32,14 +38,17 @@ services:
     build: ./server
     container_name: flask_auth
     restart: always
-    env_file: .env
     depends_on:
-      db:
-        condition: service_healthy
+      mysql_db:
+        condition: service_healthy  # Ensures MySQL is ready
+    env_file:
+      - .env
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
+      - ./server:/app
+    networks:
+      - app_network
 
 volumes:
   mysql_data:
