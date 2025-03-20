@@ -1,32 +1,12 @@
 
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 import bcrypt
-import mysql.connector
+from sqlalchemy import create_engine
 from config import get_db_connection
-
+import psycopg2
 
 app = Flask(__name__)
 app.secret_key = "secretkey"
-
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("CREATE DATABASE IF NOT EXISTS auth_db")
-    cursor.execute("USE auth_db")
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(50) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL
-        )
-    """)
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-init_db()
 
 @app.route('/')
 def home():
@@ -41,22 +21,23 @@ def signup():
     if not username or not password:
         return jsonify({"error": "Username and password required"}), 400
 
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
         conn.commit()
-    except mysql.connector.IntegrityError:
-        return jsonify({"error": "Username already exists"}), 409
-    finally:
-        cursor.close()
+        cur.close()
         conn.close()
+        return jsonify({"message": "User registered successfully"}), 201
 
-    return jsonify({"message": "User registered successfully"}), 201
+    except psycopg2.IntegrityError:
+        return jsonify({"error": "Username already exists"}), 409
 
-# Login Route
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -66,19 +47,34 @@ def login():
     if not username or not password:
         return jsonify({"error": "Username and password required"}), 400
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
-    user = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if user and bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
-        session["username"] = username
-        
-        return jsonify({"message": "Login successful", "redirect": url_for("dashboard")}), 200
-        
-    return jsonify({"error": "Invalid username or password"}), 401
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Fetch user from database
+        cur.execute("SELECT password FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        # Check if user exists
+        if not user:
+            return jsonify({"error": "Invalid username or password"}), 401
+
+        # Convert stored password to bytes for bcrypt
+        stored_hashed_password = user[0].encode('utf-8')
+
+        if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password):
+            session["username"] = username  # Store username in session
+            return jsonify({"message": "Login successful", "redirect": url_for("dashboard")}), 200
+
+        return jsonify({"error": "Invalid username or password"}), 401
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
     
 @app.route('/dashboard')
 def dashboard():

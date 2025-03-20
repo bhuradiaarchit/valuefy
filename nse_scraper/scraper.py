@@ -9,11 +9,22 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 NSE_URL = "https://www.nseindia.com/market-data/large-deals"
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+
+logger = logging.getLogger(__name__)
+
+
 # **Set up Selenium WebDriver**
 def get_driver():
     options = Options()
     #options.add_argument("--disable-gpu")
-    o#options.add_argument("--no-sandbox")
+    #options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--disable-blink-features=AutomationControlled")
@@ -32,31 +43,30 @@ def get_driver():
 def download_csv():
     driver = get_driver()
     driver.get(NSE_URL)
-    time.sleep(5)  # Allow page to load
-
+    time.sleep(5) 
     try:
         # Locate the CSV download link
         csv_button = driver.find_element(By.XPATH, "//a[contains(@href, '.csv')]")
         csv_url = csv_button.get_attribute("href")
 
         if csv_url:
-            print(f"📥 Downloading CSV from {csv_url}")
+            logger.info(f"Downloading CSV from {csv_url}")
             response = requests.get(csv_url, timeout=10)
             if response.status_code == 200:
                 csv_path = "nse_large_deals.csv"
                 with open(csv_path, "wb") as file:
                     file.write(response.content)
-                print("✅ CSV Downloaded Successfully!")
+                logger.info("CSV Downloaded Successfully!")
                 return csv_path
             else:
-                print(f"❌ Failed to download CSV. Status Code: {response.status_code}")
+                logger.error(f"❌ Failed to download CSV. Status Code: {response.status_code}")
                 return None
         else:
-            print("❌ CSV link not found!")
+            logger.error("CSV link not found!")
             return None
 
     except Exception as e:
-        print(f"❌ Error while downloading CSV: {e}")
+        logger.error(f"❌ Error while downloading CSV: {e}")
         return None
 
     finally:

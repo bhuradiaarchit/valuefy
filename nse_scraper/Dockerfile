@@ -1,17 +1,16 @@
-# Use Python official image
+
 FROM python:3.11
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the project files into the container
-COPY . .
+# Install cron
+RUN apt-get update && apt-get install -y cron
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy application files
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt 
 
-# Expose port (if needed)
-EXPOSE 5000
+COPY . /app
+RUN chmod +x /app/entrypoint.sh
 
-# Start the scheduler when the container runs
-CMD ["python", "scheduler.py"]
+ENTRYPOINT ["/app/entrypoint.sh"]
