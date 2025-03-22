@@ -1,10 +1,11 @@
 
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, send_file
 import bcrypt
 from sqlalchemy import create_engine
 from config import get_db_connection
 import psycopg2
 from nlp_sql.in_hour_llm_to_sql import LLMtoSQL
+import io
 
 app = Flask(__name__)
 app.secret_key = "secretkey"
@@ -98,11 +99,35 @@ def chat():
         return jsonify({'error': 'Message is Required'}), 400
     
     query, df, fig = client.call_llm_to_sql(message)
+    global latest_df 
+
+    latest_df = df
+    
     return jsonify({
         'query': query,
         'data': df.to_dict(),
         'figure': fig.to_json()
     })
+
+@app.route('/download', methods=['GET'])
+def download_csv():
+    global latest_df
+
+    if latest_df is None:
+        return jsonify({'error': 'No data available to download'}), 400
+
+    output = io.StringIO()
+    latest_df.to_csv(output, index=False)
+    output.seek(0)
+
+    return send_file(io.BytesIO(output.getvalue().encode()), 
+                     mimetype="text/csv",
+                     as_attachment=True,
+                     download_name="data.csv")
+
+@app.route('/chatBot')
+def chat_bot():
+    return render_template('chat.html')
 
 if __name__ == '__main__':
     client = LLMtoSQL()
