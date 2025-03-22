@@ -4,7 +4,7 @@ import bcrypt
 from sqlalchemy import create_engine
 from config import get_db_connection
 import psycopg2
-from nlp_sql.vanna_api import get_sse_response
+from nlp_sql.in_hour_llm_to_sql import LLMtoSQL
 
 app = Flask(__name__)
 app.secret_key = "secretkey"
@@ -88,5 +88,22 @@ def logout():
     session.pop("username", None)
     return redirect(url_for("home"))
 
+
+@app.route('/chat', methods = ['POST'])
+def chat():
+    data = request.get_json()
+    message = data.get("message")
+
+    if not message:
+        return jsonify({'error': 'Message is Required'}), 400
+    
+    query, df, fig = client.call_llm_to_sql(message)
+    return jsonify({
+        'query': query,
+        'data': df.to_dict(),
+        'figure': fig.to_json()
+    })
+
 if __name__ == '__main__':
+    client = LLMtoSQL()
     app.run(host='0.0.0.0', port=5000, debug=True)
