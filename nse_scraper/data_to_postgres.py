@@ -6,6 +6,8 @@ from urllib.parse import quote_plus
 import os
 import pandas as pd
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+import psycopg2
 
 load_dotenv()
 
@@ -51,6 +53,22 @@ class DataToPostgres():
             logger.error(f"File not found: {path_of_file}")
 
     
+    def null_to_insert(self, db_config, df):
+        
+        today = (datetime.now() - timedelta(days=0)).strftime("%Y-%m-%d")
+        query = f"SELECT * FROM bulk_data WHERE date = '{today}'"
+        conn = psycopg2.connect(**db_config)
+
+        df = pd.read_sql(conn, query)
+    
+        try:
+            df = pd.read_sql(query, conn)
+            return df.empty
+    
+        finally:
+            conn.close()
+
+    
     def rename_columns(self, df):
 
         df.rename(columns = {
@@ -80,5 +98,7 @@ class DataToPostgres():
             'dbname': os.getenv('DB_NAME')
         }
 
-        self.dataframe_to_postgres(db_config, df, 'bulk_data', 'append')
+        if self.null_to_insert(db_config, df) == True:
+            self.dataframe_to_postgres(db_config, df, 'bulk_data', 'append')
+        
         self.delete_file(os.getenv('CSV_FILE_PATH'))
