@@ -4,6 +4,7 @@ import bcrypt
 from sqlalchemy import create_engine
 from config import get_db_connection
 import psycopg2
+from nlp_sql.vanna_api import get_sse_response
 
 app = Flask(__name__)
 app.secret_key = "secretkey"
@@ -73,7 +74,6 @@ def login():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
     
 @app.route('/dashboard')
