@@ -6,6 +6,7 @@ from config import get_db_connection
 import psycopg2
 from nlp_sql.in_hour_llm_to_sql import LLMtoSQL
 import io
+from helpers import YahooFinanceAPI, HighVolumers
 
 app = Flask(__name__)
 app.secret_key = "secretkey"
@@ -124,6 +125,23 @@ def download_csv():
                      mimetype="text/csv",
                      as_attachment=True,
                      download_name="data.csv")
+
+
+@app.route('/high-volumers', methods = ['GET'])
+def high_volume_stocks():
+    
+    client = HighVolumers()
+    dict_vol_table = client.execution_flow()
+
+    return jsonify({'data': dict_vol_table})
+
+@app.route('/gainers-losers', methods = ['GET'])
+def gainers_losers():
+    
+    client = YahooFinanceAPI()
+    dict_gainers_table = client.compare_with_latest_prices()
+
+    return jsonify({'data': dict_gainers_table})
 
 @app.route('/chatBot')
 def chat_bot():
