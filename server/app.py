@@ -8,6 +8,7 @@ import psycopg2
 from dotenv import load_dotenv  
 from nlp_sql.in_hour_llm_to_sql import LLMtoSQL
 import io
+from helpers import YahooFinanceAPI, HighVolumers
 
 app = Flask(__name__)
 news_service = NewsAnalyzerService()
@@ -113,30 +114,12 @@ def chat():
         'figure': fig.to_json()
     })
 
-@app.route('/analyze-news', methods=['GET'])
+@app.route('/analyze-news', methods=['GET'])  
 def analyze_news():
-    """Endpoint to analyze news articles."""
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 415
-
-    data = request.get_json()
-    
-    if isinstance(data, dict):  
-        title = data.get("title", "")
-        content = data.get("content", "")
-        if not title or not content:
-            return jsonify({"error": "Title and Content are required"}), 400
-        
-        result = news_service.analyze_single_news(title, content)
-        return jsonify(result)
-
-    elif isinstance(data, list):  
-        results = [news_service.analyze_single_news(news["title"], news["content"]) for news in data]
-        return jsonify(results)
-
-    return jsonify({"error": "Invalid JSON format"}), 400
-
-
+   client = NewsAnalyzerService()
+   news = client.execution_flow()
+   
+   return jsonify({'data': news})
 
 @app.route('/download', methods=['GET'])
 def download_csv():
@@ -153,6 +136,23 @@ def download_csv():
                      mimetype="text/csv",
                      as_attachment=True,
                      download_name="data.csv")
+
+
+@app.route('/high-volumers', methods = ['GET'])
+def high_volume_stocks():
+    
+    client = HighVolumers()
+    dict_vol_table = client.execution_flow()
+
+    return jsonify({'data': dict_vol_table})
+
+@app.route('/gainers-losers', methods = ['GET'])
+def gainers_losers():
+    
+    client = YahooFinanceAPI()
+    dict_gainers_table = client.compare_with_latest_prices()
+
+    return jsonify({'data': dict_gainers_table})
 
 @app.route('/chatBot')
 def chat_bot():
