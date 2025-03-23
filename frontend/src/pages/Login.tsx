@@ -8,13 +8,17 @@ import { setUser, setLoading, setError } from '../store/slices/authSlice';
 import { loginUser } from '../services/api';
 import { RootState } from '../store/store';
 import { LineChart } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { app } from '../firebase';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [authLoading,setAuthLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoading } = useSelector((state: RootState) => state.auth);
+  const { isLoading,error:authError } = useSelector((state: RootState) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ const Login = () => {
     try {
       const user = await loginUser(username, password);
       dispatch(setUser(user));
-      toast.success('Welcome back!');
+      toast.success(`Welcome back ${username}!`);
       navigate('/');
     } catch (error) {
       dispatch(setError((error as Error).message));
@@ -35,6 +39,30 @@ const Login = () => {
     } finally {
       dispatch(setLoading(false));
     }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const auth = getAuth(app);
+
+    setAuthLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const username = result.user.displayName || "User";
+      const password = result.user.uid || "abc123";
+      const user = await loginUser(username, password);
+      dispatch(setUser(user));
+      toast.success(`Welcome back ${username}!`);
+      navigate('/');
+    } catch (error) {
+      dispatch(setError((error as Error).message));
+      toast.error(authError || 'Login failed');
+    } finally {
+      setAuthLoading(false);
+    }
+
   };
 
   return (
@@ -78,6 +106,27 @@ const Login = () => {
               {isLoading ? <CircularProgress size={24} /> : 'Login'}
             </Button>
           </form>
+
+          <div className="my-2 text-center text-gray-500">OR</div>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            className="flex items-center justify-center space-x-2 border-gray-300"
+            onClick={handleGoogleLogin}
+            disabled={authLoading}
+          >
+            {authLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <FcGoogle size={24} />
+                <span>Login with Google</span>
+              </div>
+            )}
+          </Button>
+
 
           <p className="mt-4 text-center text-gray-600">
             Don't have an account?{' '}

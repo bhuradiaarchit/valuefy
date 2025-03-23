@@ -8,13 +8,17 @@ import { setUser, setLoading, setError } from '../store/slices/authSlice';
 import { registerUser } from '../services/api';
 import { RootState } from '../store/store';
 import { LineChart } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { app } from '../firebase';
 
 const Signup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [authLoading,setAuthLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoading } = useSelector((state: RootState) => state.auth);
+    const { isLoading,error:authError } = useSelector((state: RootState) => state.auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,7 @@ const Signup = () => {
     try {
       const user = await registerUser(username, password);
       dispatch(setUser(user));
-      toast.success('Account created successfully!');
+      toast.success(`Heyy ${username}!`);
       navigate('/');
     } catch (error) {
       dispatch(setError((error as Error).message));
@@ -36,6 +40,30 @@ const Signup = () => {
       dispatch(setLoading(false));
     }
   };
+
+   const handleGoogleSignup = async () => {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+  
+      const auth = getAuth(app);
+  
+      setAuthLoading(true);
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const username = result.user.displayName || "User";
+        const password = result.user.uid || "abc123";
+        const user = await registerUser(username, password);
+        dispatch(setUser(user));
+        toast.success(`Heyy ${username}!`);
+        navigate('/');
+      } catch (error) {
+        dispatch(setError((error as Error).message));
+        toast.error(authError || 'Login failed');
+      } finally {
+        setAuthLoading(false);
+      }
+  
+    };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -78,6 +106,26 @@ const Signup = () => {
               {isLoading ? <CircularProgress size={24} /> : 'Sign Up'}
             </Button>
           </form>
+
+          <div className="my-2 text-center text-gray-500 text-xs md:text-sm">OR</div>
+
+          <Button
+                      fullWidth
+                      variant="outlined"
+                      size="large"
+                      className="flex items-center justify-center space-x-2 border-gray-300"
+                      onClick={handleGoogleSignup}
+                      disabled={authLoading}
+                    >
+                      {authLoading ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <FcGoogle size={24} />
+                          <span>Signup with Google</span>
+                        </div>
+                      )}
+                    </Button>
 
           <p className="mt-4 text-center text-gray-600">
             Already have an account?{' '}
