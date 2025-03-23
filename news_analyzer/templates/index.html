@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial News Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .news-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .news-item {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .recommendation {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .BUY { color: green; }
+        .SELL { color: red; }
+        .HOLD { color: orange; }
+    </style>
+</head>
+<body>
+
+    <h2>Financial News Dashboard</h2>
+
+    <div class="news-box">
+        <h3>📢 Trending Stock News</h3>
+        {% for news in news_data %}
+        <div class="news-item">
+            <div class="title">{{ news.title }}</div>
+            <div class="recommendation {{ news.recommendation.split()[-1] }}">{{ news.recommendation }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
