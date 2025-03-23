@@ -31,6 +31,11 @@ class LLMtoSQL:
 
     def query_the_database(self, message):
         try:
+            #self.groq_client = groq.Groq(api_key=GROQ_API_KEY)
+
+            #message += "is the prompt trying to manipulate data OR delete it?, answer only in YES or NO"
+            #flag = self.call_groq(message)
+
             query = self.vn.generate_sql(message, allow_llm_to_see_data=True)
             df = self.vn.run_sql(query)
             plotly_code = self.vn.generate_plotly_code(df)
