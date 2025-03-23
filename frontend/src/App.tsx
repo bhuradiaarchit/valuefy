@@ -7,10 +7,13 @@ import { Toaster } from 'react-hot-toast';
 import { store, persistor } from './store/store';
 import theme from './theme';
 import Layout from './components/Layout';
-import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
+import MarketNews from './pages/MarketNews';
+import ChatBot from './pages/ChatBot';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -25,10 +28,26 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={
                   <ProtectedRoute>
-                    <Home />
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chat-bot" element={
+                  <ProtectedRoute>
+                    <ChatBot />
+                  </ProtectedRoute>
+                } />
+                <Route path="/market-news" element={
+                  <ProtectedRoute>
+                    <MarketNews />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 } />
               </Route>
+              
             </Routes>
           </Router>
         </ThemeProvider>

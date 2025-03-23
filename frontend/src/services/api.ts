@@ -11,7 +11,7 @@ export const loginUser = async (username: string, password: string) => {
       username,
       password,
     });
-
+c
     return response.data;
   } catch (error) {
     console.error("Registration failed:", error);
@@ -46,4 +46,46 @@ export const getStockInsights = async (prompt: string) => {
     response: `Analysis for "${prompt}": Market trends indicate positive momentum in tech sector. Consider diversifying portfolio with focus on AI and renewable energy stocks.`,
     timestamp: Date.now()
   };
+};
+
+
+export const getChatResponse = async (message: string) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/chat`, { message });
+
+    return response.data; // Expected to contain SQL query, table data, and plot JSON
+  } catch (error) {
+    console.error("Error fetching chat response:", error);
+    throw new Error("Failed to fetch response from the server");
+  }
+};
+
+export const fetchMarketNews = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/analyze-news`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching market news:", error);
+    throw new Error("Failed to fetch market news");
+  }
+};
+
+export const fetchHighVolumers = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/high-volumers`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching high volumers:", error);
+    throw new Error("Failed to fetch high volumers");
+  }
+};
+
+export const fetchGainersLosers = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/gainers-losers`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching gainers/losers:", error);
+    throw new Error("Failed to fetch gainers/losers");
+  }
 };

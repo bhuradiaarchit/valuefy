@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Drawer,
   List,
@@ -10,17 +10,10 @@ import {
   ListItemText,
   IconButton,
   Divider,
-} from '@mui/material';
-import {
-  TrendingUp,
-  TrendingDown,
-  BarChart,
-  Settings,
-  LogOut,
-  Menu,
-} from 'lucide-react';
-import { logout } from '../store/slices/authSlice';
-import { RootState } from '../store/store';
+} from "@mui/material";
+import { TrendingUp, MessageCircle, Newspaper, Settings, LogOut, Menu } from "lucide-react";
+import { logout } from "../store/slices/authSlice";
+import { RootState } from "../store/store";
 
 const Layout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -30,38 +23,31 @@ const Layout = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    navigate("/login");
   };
 
   const drawerItems = [
-    { text: 'Top Gainers', icon: <TrendingUp size={24} /> },
-    { text: 'Top Losers', icon: <TrendingDown size={24} /> },
-    { text: 'High Volume', icon: <BarChart size={24} /> },
-    { text: 'Settings', icon: <Settings size={24} /> },
+    { text: "Dashboard", icon: <TrendingUp size={24} />, path: "/" },
+    { text: "ChatBot", icon: <MessageCircle size={24} />, path: "/chat-bot" },
+    { text: "Market News", icon: <Newspaper size={24} />, path: "/market-news" },
+    { text: "Settings", icon: <Settings size={24} />, path: "/settings" },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <IconButton
-        className="fixed top-4 left-4 z-50"
-        onClick={() => setDrawerOpen(true)}
-      >
+      <IconButton className="fixed top-4 left-4 z-50" onClick={() => setDrawerOpen(true)}>
         <Menu />
       </IconButton>
 
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      >
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <div className="w-64 p-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Stock AI</h2>
+            <h2 className="text-xl font-bold">Valuefy</h2>
           </div>
           <Divider />
           <List>
             {drawerItems.map((item) => (
-              <ListItem button key={item.text}>
+              <ListItem button key={item.text} onClick={() => { navigate(item.path); setDrawerOpen(false); }}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItem>
@@ -83,7 +69,7 @@ const Layout = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
-          className="container mx-auto px-4 py-8"
+          className=" mx-auto px-4"
         >
           <Outlet />
         </motion.main>
