@@ -95,13 +95,6 @@
             return num.toString();
         }
 
-        // Update last updated time
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('last-updated').textContent = 
-                `Last updated: ${now.toLocaleTimeString()}`;
-        }
-
         // Fetch and display dashboard data
         async function loadDashboard() {
             try {
@@ -156,8 +149,6 @@
                 // Update news count
                 document.getElementById('news-count').textContent = `${newsData.data.length} updates`;
 
-                // Update timestamp
-                updateLastUpdated();
 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
