@@ -40,7 +40,7 @@ class YahooFinanceAPI:
         #df.to_csv('data.csv')
 
         pct_change_data = df['Close'].pct_change().iloc[len(df) - 1] * 100
-        pct_change_sorted = pct_change_data.sort_values(ascending=False)
+        pct_change_sorted = pct_change_data.sort_values(ascending=False).dropna(inplace = True)
 
         print(pct_change_sorted)
         

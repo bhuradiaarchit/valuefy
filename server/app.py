@@ -114,30 +114,12 @@ def chat():
         'figure': fig.to_json()
     })
 
-@app.route('/analyze-news', methods=['GET'])
+@app.route('/analyze-news', methods=['GET'])  
 def analyze_news():
-    """Endpoint to analyze news articles."""
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 415
-
-    data = request.get_json()
-    
-    if isinstance(data, dict):  
-        title = data.get("title", "")
-        content = data.get("content", "")
-        if not title or not content:
-            return jsonify({"error": "Title and Content are required"}), 400
-        
-        result = news_service.analyze_single_news(title, content)
-        return jsonify(result)
-
-    elif isinstance(data, list):  
-        results = [news_service.analyze_single_news(news["title"], news["content"]) for news in data]
-        return jsonify(results)
-
-    return jsonify({"error": "Invalid JSON format"}), 400
-
-
+   client = NewsAnalyzerService()
+   news = client.execution_flow()
+   
+   return jsonify({'data': news})
 
 @app.route('/download', methods=['GET'])
 def download_csv():
@@ -167,6 +149,7 @@ def high_volume_stocks():
 @app.route('/gainers-losers', methods = ['GET'])
 def gainers_losers():
     
+    print("🚀 /gainers-losers API was called!")
     client = YahooFinanceAPI()
     dict_gainers_table = client.compare_with_latest_prices()
 
