@@ -1,13 +1,17 @@
-
+from news_analyzer.services import NewsAnalyzerService
+import json  
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, send_file
 import bcrypt
 from sqlalchemy import create_engine
 from config import get_db_connection
 import psycopg2
+from dotenv import load_dotenv  
 from nlp_sql.in_hour_llm_to_sql import LLMtoSQL
 import io
 
 app = Flask(__name__)
+news_service = NewsAnalyzerService()
+
 app.secret_key = "secretkey"
 
 @app.route('/')
@@ -108,6 +112,31 @@ def chat():
         'data': df.to_dict(),
         'figure': fig.to_json()
     })
+
+@app.route('/analyze-news', methods=['GET'])
+def analyze_news():
+    """Endpoint to analyze news articles."""
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 415
+
+    data = request.get_json()
+    
+    if isinstance(data, dict):  
+        title = data.get("title", "")
+        content = data.get("content", "")
+        if not title or not content:
+            return jsonify({"error": "Title and Content are required"}), 400
+        
+        result = news_service.analyze_single_news(title, content)
+        return jsonify(result)
+
+    elif isinstance(data, list):  
+        results = [news_service.analyze_single_news(news["title"], news["content"]) for news in data]
+        return jsonify(results)
+
+    return jsonify({"error": "Invalid JSON format"}), 400
+
+
 
 @app.route('/download', methods=['GET'])
 def download_csv():
