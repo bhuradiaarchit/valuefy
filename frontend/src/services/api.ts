@@ -11,7 +11,6 @@ export const loginUser = async (username: string, password: string) => {
       username,
       password,
     });
-c
     return response.data;
   } catch (error) {
     console.error("Registration failed:", error);
