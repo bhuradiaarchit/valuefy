@@ -8,7 +8,7 @@
     <style>
         /* Ensuring table doesn't take full width */
         .table-container {
-            max-width: 50%;  /* Restricts to half the page */
+            max-width: 100%;  /* Adjusts to full width within col */
         }
     </style>
 </head>
@@ -26,7 +26,7 @@
         <h1>Welcome, {{ username }}!</h1>
 
         <div class="row">
-            <!-- Table on the left half -->
+            <!-- High Volume Stocks Table -->
             <div class="col-md-6 table-container">
                 <h2 class="mt-4">High Volume Stocks</h2>
                 <table class="table table-striped" id="data-table">
@@ -36,9 +36,21 @@
                             <th>Total Volume</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Data will be inserted here -->
-                    </tbody>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <!-- Max Gainers Table -->
+            <div class="col-md-6 table-container">
+                <h2 class="mt-4">Max Gainers</h2>
+                <table class="table table-striped" id="gainers-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>% Change</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
@@ -46,25 +58,60 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            fetch("/high-volumers")  // Fetch data from your API
+            // ✅ Fetch High Volume Stocks
+            fetch("/high-volumers")
                 .then(response => response.json())
                 .then(data => {
                     const tableBody = document.querySelector("#data-table tbody");
-                    const symbols = data.data.symbol;
-                    const volumes = data.data.total_volume;
-
-                    // Loop through data and insert into table
-                    for (let i = 0; i < Object.keys(symbols).length; i++) {
+                    if (!tableBody) {
+                        console.error("Table body for high volume stocks not found!");
+                        return;
+                    }
+                    tableBody.innerHTML = ""; // Clear previous entries
+    
+                    data.data.forEach(item => {
                         let row = `<tr>
-                            <td>${symbols[i]}</td>
-                            <td>${volumes[i].toLocaleString()}</td>
+                            <td>${item[0]}</td>
+                            <td>${parseFloat(item[1]).toLocaleString()}</td>
                         </tr>`;
                         tableBody.innerHTML += row;
-                    }
+                    });
                 })
-                .catch(error => console.error("Error fetching data:", error));
+                .catch(error => console.error("Error fetching high volume stocks:", error));
+    
+            // ✅ Fetch Gainers-Losers
+            fetch("/gainers-losers")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Received Data:", data); // Debugging log
+                    const tableBody = document.querySelector("#gainers-table tbody");
+                    if (!tableBody) {
+                        console.error("Table body for gainers not found!");
+                        return;
+                    }
+                    tableBody.innerHTML = ""; // Clear old data
+    
+                    data.data.forEach(item => {
+                        let [symbol, change] = item;
+                        change = parseFloat(change); // Ensure it's a number
+                        if (!isNaN(change)) {
+                            let row = `<tr>
+                                <td>${symbol}</td>
+                                <td>${change.toFixed(2)}%</td>
+                            </tr>`;
+                            tableBody.innerHTML += row;
+                        }
+                    });
+                })
+                .catch(error => console.error("Error fetching max gainers:", error));
         });
     </script>
+    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
