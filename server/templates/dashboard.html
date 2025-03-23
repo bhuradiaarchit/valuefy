@@ -3,258 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Valuefy - Financial Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Ensuring table doesn't take full width */
+        :root {
+            --primary-light: #3b82f6;
+            --primary-dark: #1e40af;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary-light));
+            padding: 1rem;
+            color: white;
+        }
+
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .welcome-card {
+            background: linear-gradient(120deg, var(--primary-dark), var(--primary-light));
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
         .table-container {
-            max-width: 100%;  /* Adjusts to full width within col */
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .volume-value {
+            font-family: 'Monaco', monospace;
+            text-align: right;
+        }
+
+        .change-value {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .positive {
+            color: var(--success);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .news-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .news-card.buy {
+            background: #f0fdf4;
+            border-left-color: var(--success);
+        }
+
+        .news-card.sell {
+            background: #fef2f2;
+            border-left-color: var(--danger);
+        }
+
+        .news-card.hold {
+            background: #fefce8;
+            border-left-color: var(--warning);
+        }
+
+        .news-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-content {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .news-badge.buy {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .news-badge.sell {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .news-badge.hold {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="#">Dashboard</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/logout">Logout</a>
+    <header class="header">
+        <div class="header-content">
+            <div class="brand">
+                <i data-lucide="bar-chart-3"></i>
+                <span>Valuefy</span>
             </div>
+            <button class="logout-btn" onclick="location.href='/logout'">
+                <i data-lucide="log-out"></i>
+                <span>Logout</span>
+            </button>
         </div>
-    </nav>
-    <div class="container-fluid mt-3">
-        <div class="row">
-            <div class="col-md-8">
-                <!-- Empty space -->
+    </header>
+
+    <main class="container">
+        <div class="welcome-card">
+            <h2 class="text-2xl">Welcome back!</h2>
+            <div class="text-sm opacity-75" id="last-updated"></div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <i data-lucide="bar-chart-3" class="text-primary-light"></i>
+                    <h3 class="card-title">Highest Activity of Institutions</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th style="text-align: right">Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="volume-table"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Market News</h5>
-                        <span class="badge bg-light text-dark rounded-pill" id="news-count">0</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush" id="news-list">
-                            <li class="list-group-item text-center">Loading news...</li>
-                        </ul>
-                    </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i data-lucide="trending-up" style="color: var(--success)"></i>
+                    <h3 class="card-title">Max Gainers by Hedge Funds</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th style="text-align: right">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gainers-table"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="container mt-5">
-        <h3>Welcome, {{ username }}!</h3>
 
-        <div class="row">
-            <!-- High Volume Stocks Table -->
-            <div class="col-md-6 table-container">
-                <h2 class="mt-4">Highest Activity of Instituitions</h2>
-                <table class="table table-striped" id="data-table">
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>Total Volume</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+        <div class="card">
+            <div class="card-header">
+                <i data-lucide="newspaper" class="text-primary-light"></i>
+                <h3 class="card-title">Market News</h3>
+                <span id="news-count" style="margin-left: auto; background: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500;"></span>
             </div>
-            
-            <!-- Max Gainers Table -->
-            <div class="col-md-6 table-container">
-                <h2 class="mt-4">Max gainers by Hedge Funds</h2>
-                <table class="table table-striped" id="gainers-table">
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>% Change</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div id="news-grid" class="news-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: #64748b;">Loading data...</p>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
+
     <script>
-       document.addEventListener("DOMContentLoaded", async function () {
-    try {
-        // Load all data in parallel
-        const [highVolumersResponse, gainersResponse, newsResponse] = await Promise.all([
-            fetch("/high-volumers"),
-            fetch("/gainers-losers"),
-            fetch("/analyze-news")
-        ]);
+        // Initialize Lucide icons
+        lucide.createIcons();
 
-        // Check responses
-        if (!highVolumersResponse.ok) throw new Error(`Failed to load volume data: ${highVolumersResponse.status}`);
-        if (!gainersResponse.ok) throw new Error(`Failed to load gainers data: ${gainersResponse.status}`);
-        if (!newsResponse.ok) throw new Error(`Failed to load news data: ${newsResponse.status}`);
-
-        // Parse JSON responses in parallel
-        const [highVolumersData, gainersData, newsData] = await Promise.all([
-            highVolumersResponse.json(),
-            gainersResponse.json(),
-            newsResponse.json()
-        ]);
-
-        // ✅ Update High Volume Stocks Table
-        const highVolTableBody = document.querySelector("#data-table tbody");
-        if (highVolTableBody) {
-            highVolTableBody.innerHTML = ""; // Clear previous entries
-            
-            const symbols = highVolumersData.data.symbol;
-            const volumes = highVolumersData.data.total_volume;
-
-            for (let i = 0; i < Object.keys(symbols).length; i++) {
-                const formattedVolume = parseFloat(volumes[i]).toLocaleString();
-                const row = `<tr>
-                    <td class="fw-semibold">${symbols[i]}</td>
-                    <td class="text-end">${formattedVolume}</td>
-                </tr>`;
-                highVolTableBody.innerHTML += row;
-            }
+        // Format large numbers
+        function formatNumber(num) {
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toString();
         }
 
-        // ✅ Update Gainers-Losers Table
-        const gainersTableBody = document.querySelector("#gainers-table tbody");
-        if (gainersTableBody) {
-            gainersTableBody.innerHTML = ""; // Clear previous entries
-
-            gainersData.data.forEach(item => {
-                let [symbol, change] = item;
-                change = parseFloat(change); // Ensure it's a number
-                
-                if (!isNaN(change)) {
-                    // Determine color based on change
-                    const textColorClass = change >= 0 ? "text-success" : "text-danger";
-                    const changePrefix = change >= 0 ? "+" : "";
-                    
-                    const row = `<tr>
-                        <td class="fw-semibold">${symbol}</td>
-                        <td class="text-end ${textColorClass}">${changePrefix}${change.toFixed(2)}%</td>
-                    </tr>`;
-                    gainersTableBody.innerHTML += row;
-                }
-            });
+        // Update last updated time
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('last-updated').textContent = 
+                `Last updated: ${now.toLocaleTimeString()}`;
         }
 
-        // ✅ Update News Section
-        const newsList = document.querySelector("#news-list");
-        const newsCount = document.querySelector("#news-count");
-        
-        if (newsList) {
-            newsList.innerHTML = ""; // Clear loading message
-            
-            // Update news count
-            if (newsCount) {
-                newsCount.textContent = newsData.data.length;
-            }
-            
-            // Store the news data globally to access it when showing the modal
-            window.newsData = newsData.data;
-            
-            newsData.data.forEach((item, index) => {
-                // Determine badge color based on recommendation
-                let badgeColor = "secondary";
-                let recommendation = item.recommendation.split(' ').pop();
-                
-                if (item.recommendation.includes("BUY")) {
-                    badgeColor = "success";
-                } else if (item.recommendation.includes("SELL")) {
-                    badgeColor = "danger";
-                } else if (item.recommendation.includes("HOLD")) {
-                    badgeColor = "warning";
-                }
-                
-                let newsItem = `
-                    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center news-item shadow-sm mb-1 border-start border-${badgeColor} border-3" 
-                        data-index="${index}" style="cursor: pointer; transition: all 0.2s ease;">
-                        <div class="text-truncate">${item.title}</div>
-                        <span class="badge bg-${badgeColor} ms-2">${recommendation}</span>
-                    </li>
-                `;
-                newsList.innerHTML += newsItem;
-            });
-            
-            // Add click event listeners and hover effects for news items
-            document.querySelectorAll('.news-item').forEach(item => {
-                // Add hover effect
-                item.addEventListener('mouseenter', function() {
-                    this.classList.add('bg-light');
-                });
-                
-                item.addEventListener('mouseleave', function() {
-                    this.classList.remove('bg-light');
-                });
-                
-                // Add click handler for modal
-                item.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    const newsItem = window.newsData[index];
-                    
-                    // Get modal elements
-                    const modal = new bootstrap.Modal(document.getElementById('newsModal'));
-                    const modalTitle = document.getElementById('newsModalLabel');
-                    const modalBody = document.getElementById('newsModalBody');
-                    
-                    // Set modal content
-                    modalTitle.textContent = newsItem.title;
-                    
-                    // Determine badge color for recommendation
-                    let badgeColor = "secondary";
-                    if (newsItem.recommendation.includes("BUY")) {
-                        badgeColor = "success";
-                    } else if (newsItem.recommendation.includes("SELL")) {
-                        badgeColor = "danger";
-                    } else if (newsItem.recommendation.includes("HOLD")) {
-                        badgeColor = "warning";
-                    }
-                    
-                    modalBody.innerHTML = `
-                        <p class="mb-4 lead">${newsItem.content}</p>
-                        <div class="alert alert-${badgeColor} d-flex align-items-center">
-                            <i class="bi ${badgeColor === 'success' ? 'bi-graph-up-arrow' : 
-                                          badgeColor === 'danger' ? 'bi-graph-down-arrow' : 
-                                          'bi-arrow-left-right'} me-2"></i>
-                            <div>
-                                <strong>Recommendation:</strong> ${newsItem.recommendation}
+        // Fetch and display dashboard data
+        async function loadDashboard() {
+            try {
+                const [volumeRes, gainersRes, newsRes] = await Promise.all([
+                    fetch('/high-volumers'),
+                    fetch('/gainers-losers'),
+                    fetch('/analyze-news')
+                ]);
+
+                const volumeData = await volumeRes.json();
+                const gainersData = await gainersRes.json();
+                const newsData = await newsRes.json();
+
+                // Update volume table
+                const volumeTable = document.getElementById('volume-table');
+                volumeTable.innerHTML = Object.keys(volumeData.data.symbol)
+                    .map(key => `
+                        <tr>
+                            <td>${volumeData.data.symbol[key]}</td>
+                            <td class="volume-value">${formatNumber(volumeData.data.total_volume[key])}</td>
+                        </tr>
+                    `).join('');
+
+                // Update gainers table
+                const gainersTable = document.getElementById('gainers-table');
+                gainersTable.innerHTML = gainersData.data
+                    .map(([symbol, change]) => `
+                        <tr>
+                            <td>${symbol}</td>
+                            <td class="change-value ${Number(change) >= 0 ? 'positive' : 'negative'}">
+                                ${Number(change) >= 0 ? '+' : ''}${Number(change).toFixed(2)}%
+                            </td>
+                        </tr>
+                    `).join('');
+
+                // Update news grid
+                const newsGrid = document.getElementById('news-grid');
+                newsGrid.innerHTML = newsData.data
+                    .map(news => {
+                        const type = news.recommendation.includes('BUY') ? 'buy' :
+                                   news.recommendation.includes('SELL') ? 'sell' : 'hold';
+                        
+                        return `
+                            <div class="news-card ${type}">
+                                <h4 class="news-title">${news.title}</h4>
+                                <p class="news-content">${news.content}</p>
+                                <span class="news-badge ${type}">${news.recommendation}</span>
                             </div>
-                        </div>
-                    `;
-                    
-                    // Show the modal with animation
-                    modal.show();
-                });
-            });
+                        `;
+                    }).join('');
+
+                // Update news count
+                document.getElementById('news-count').textContent = `${newsData.data.length} updates`;
+
+                // Update timestamp
+                updateLastUpdated();
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.querySelector('.container').innerHTML += `
+                    <div style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+                        <strong>Error loading dashboard data:</strong> ${error.message}
+                    </div>
+                `;
+            }
         }
 
-    } catch (error) {
-        console.error("Dashboard error:", error);
-        // Show user-friendly error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'alert alert-danger mt-3';
-        errorDiv.innerHTML = `<strong>Error loading dashboard data:</strong> ${error.message}`;
-        document.querySelector('.container').prepend(errorDiv);
-    }
-});
-    </script>    
-    
+        // Initial load
+        loadDashboard();
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="newsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newsModalLabel">News Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="newsModalBody">
-                    <!-- News content will be populated here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        // Refresh data every 5 minutes
+        setInterval(loadDashboard, 300000);
+    </script>
 </body>
 </html>
