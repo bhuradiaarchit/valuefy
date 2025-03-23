@@ -1,6 +1,7 @@
 from news_analyzer.services import NewsAnalyzerService
 import json  
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, send_file
+from flask_cors import CORS
 import bcrypt
 from sqlalchemy import create_engine
 from config import get_db_connection
@@ -11,6 +12,8 @@ import io
 from helpers import YahooFinanceAPI, HighVolumers
 
 app = Flask(__name__)
+# Allow requests from localhost:5173
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 news_service = NewsAnalyzerService()
 
 app.secret_key = "secretkey"

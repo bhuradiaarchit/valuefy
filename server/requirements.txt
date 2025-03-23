@@ -8,3 +8,4 @@ sseclient
 vanna
 yfinance
 groq
+flask_cors
