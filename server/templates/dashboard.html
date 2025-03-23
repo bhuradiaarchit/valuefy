@@ -23,12 +23,12 @@
     </nav>
 
     <div class="container mt-5">
-        <h1>Welcome, {{ username }}!</h1>
+        <h3>Welcome, {{ username }}!</h3>
 
         <div class="row">
             <!-- High Volume Stocks Table -->
             <div class="col-md-6 table-container">
-                <h2 class="mt-4">High Volume Stocks</h2>
+                <h2 class="mt-4">Highest Activity of Instituitions</h2>
                 <table class="table table-striped" id="data-table">
                     <thead>
                         <tr>
@@ -42,7 +42,7 @@
             
             <!-- Max Gainers Table -->
             <div class="col-md-6 table-container">
-                <h2 class="mt-4">Max Gainers</h2>
+                <h2 class="mt-4">Max gainers by Hedge Funds</h2>
                 <table class="table table-striped" id="gainers-table">
                     <thead>
                         <tr>
@@ -55,62 +55,47 @@
             </div>
         </div>
     </div>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // ✅ Fetch High Volume Stocks
-            fetch("/high-volumers")
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.querySelector("#data-table tbody");
-                    if (!tableBody) {
-                        console.error("Table body for high volume stocks not found!");
-                        return;
-                    }
-                    tableBody.innerHTML = ""; // Clear previous entries
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                // ✅ Fetch High Volume Stocks
+                const highVolumersResponse = await fetch("/high-volumers");
+                const highVolumersData = await highVolumersResponse.json();
     
-                    data.data.forEach(item => {
-                        let row = `<tr>
-                            <td>${item[0]}</td>
-                            <td>${parseFloat(item[1]).toLocaleString()}</td>
-                        </tr>`;
-                        tableBody.innerHTML += row;
-                    });
-                })
-                .catch(error => console.error("Error fetching high volume stocks:", error));
+                const highVolTableBody = document.querySelector("#data-table tbody");
+                highVolTableBody.innerHTML = ""; // Clear previous entries
     
-            // ✅ Fetch Gainers-Losers
-            fetch("/gainers-losers")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received Data:", data); // Debugging log
-                    const tableBody = document.querySelector("#gainers-table tbody");
-                    if (!tableBody) {
-                        console.error("Table body for gainers not found!");
-                        return;
-                    }
-                    tableBody.innerHTML = ""; // Clear old data
+                const symbols = highVolumersData.data.symbol;
+                const volumes = highVolumersData.data.total_volume;
     
-                    data.data.forEach(item => {
-                        let [symbol, change] = item;
-                        change = parseFloat(change); // Ensure it's a number
-                        if (!isNaN(change)) {
-                            let row = `<tr>
-                                <td>${symbol}</td>
-                                <td>${change.toFixed(2)}%</td>
-                            </tr>`;
-                            tableBody.innerHTML += row;
-                        }
-                    });
-                })
-                .catch(error => console.error("Error fetching max gainers:", error));
+                for (let i = 0; i < Object.keys(symbols).length; i++) {
+                    let row = `<tr>
+                        <td>${symbols[i]}</td>
+                        <td>${parseFloat(volumes[i]).toLocaleString()}</td>
+                    </tr>`;
+                    highVolTableBody.innerHTML += row;
+                }
+    
+                // ✅ Fetch Gainers-Losers
+                const gainersResponse = await fetch("/gainers-losers");
+                const gainersData = await gainersResponse.json();
+    
+                const gainersTableBody = document.querySelector("#gainers-table tbody");
+                gainersTableBody.innerHTML = ""; // Clear previous entries
+    
+                gainersData.data.forEach(item => {
+                    let row = `<tr>
+                        <td>${item[0]}</td>
+                        <td>${item[1].toFixed(2)}%</td>
+                    </tr>`;
+                    gainersTableBody.innerHTML += row;
+                });
+    
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         });
-    </script>
+    </script>    
     
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
