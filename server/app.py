@@ -110,11 +110,14 @@ def chat():
     global latest_df 
 
     latest_df = df
+
+    df_dict = df.to_dict() if df is not None and not df.empty else None
+    fig_json = fig.to_json() if fig else None
     
     return jsonify({
         'query': query,
-        'data': df.to_dict(),
-        'figure': fig.to_json()
+        'data': df_dict,
+        'figure': fig_json
     })
 
 @app.route('/analyze-news', methods=['GET'])  
