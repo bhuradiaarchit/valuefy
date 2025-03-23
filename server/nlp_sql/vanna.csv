@@ -1,0 +1,86 @@
+,id,training_data_type,question,content
+0,1041320-sql,sql,"Find all trades executed on March 20, 2025",SELECT * FROM bulk_data WHERE date = '2025-03-20
+1,3794065-ddl,ddl,,"
+CREATE TABLE IF NOT EXISTS bulk_data (
+    id SERIAL PRIMARY KEY,
+    date DATE,
+    symbol VARCHAR(50),
+    security_name VARCHAR(100),
+    client_name VARCHAR(100),
+    buy_sell VARCHAR(10),
+    quantity_traded BIGINT,
+    trade_price DECIMAL(10,2),
+    remarks TEXT
+);
+
+"
+2,1041315-sql,sql,Find clients/people/institutions who bought AVG Logistics Limited shares,SELECT client_name FROM bulk_data WHERE security_name ILIKE '%AVG Logistics Limited%';
+3,1041309-sql,sql,Give me Schema of the Data,SELECT * FROM bulk_data
+4,3297362-doc,documentation,,"Our business defines the trading activity from instituionals investors in the indian stock markets, so we want to deduce some insights from the available data to buy or sell the stock"
+7,1041313-sql,sql,which instituitions bought tanla,"SELECT symbol, client_name 
+FROM bulk_data
+WHERE symbol ILIKE 'tanla%';"
+8,1041323-sql,sql,Retrieve all transactions for a specific security,"SELECT symbol, COUNT(*) FROM bulk_data GROUP BY symbol"
+9,3767317-ddl,ddl,,"
+CREATE TABLE IF NOT EXISTS bulk_data (
+    id SERIAL PRIMARY KEY,
+    date DATE,
+    symbol VARCHAR(50),
+    security_name VARCHAR(100),
+    client_name VARCHAR(100),
+    buy_sell VARCHAR(10),
+    quantity_traded BIGINT,
+    trade_price DECIMAL(10,2),
+    remarks TEXT
+);
+
+"
+10,3297194-doc,documentation,,"Our business defines the trading activity from instituionals investors in the indian stock markets, so we want to deduce some insights from the available data to buy or sell the stock"
+11,3929743-ddl,ddl,,"
+CREATE TABLE IF NOT EXISTS bulk_data (
+    id SERIAL PRIMARY KEY,
+    date DATE,
+    symbol VARCHAR(50),
+    security_name VARCHAR(100),
+    client_name VARCHAR(100),
+    buy_sell VARCHAR(10),
+    quantity_traded BIGINT,
+    trade_price DECIMAL(10,2),
+    remarks TEXT
+);
+
+"
+12,1041310-sql,sql,Give me stock names,SELECT symbols FROM bulk_data
+13,1041311-sql,sql,Give institution names,SELECT client_name FROM bulk_data
+14,1041324-sql,sql,Find securities that were traded every single day in the last 30 days,SELECT security_name FROM bulk_data WHERE date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY security_name HAVING COUNT(DISTINCT date) = 30;
+15,1041312-sql,sql,tell me stocks bought by graviton,"SELECT symbol, 
+       security_name, 
+       quantity_traded, 
+       trade_price
+FROM bulk_data
+WHERE client_name ILIKE '%graviton%' AND buy_sell = 'BUY';"
+16,1041322-sql,sql,Get the total number of trades executed today,SELECT COUNT(*) FROM bulk_data WHERE date = CURRENT_DATE;
+17,1041200-sql,sql,total_volume is SUM(quantity_traded * trade_price WHERE buy_sell == 'BUY' PLUS quantity_traded * trade_price WHERE buy_sell == 'SELL') get me top 10 symbols with highest total_volume in all of the data,"SELECT symbol, 
+       SUM(quantity_traded * trade_price) AS total_volume
+FROM bulk_data
+GROUP BY symbol
+ORDER BY total_volume DESC
+LIMIT 10;"
+18,1041314-sql,sql,Show all trades where quantity is greater than 50000,SELECT * FROM bulk_data WHERE quantity_traded > 50000;
+19,1041321-sql,sql,Show the top 5 highest traded securities by volume,"SELECT symbol, 
+
+SUM(quantity_traded * trade_price) AS total_volume 
+
+FROM bulk_data 
+
+GROUP BY symbol 
+
+ORDER BY total_volume 
+
+DESC LIMIT 5;"
+20,1041316-sql,sql,Get the total traded quantity for Baweja Studios Limited,Get the total traded quantity for Baweja Studios Limited
+21,1041207-sql,sql,tell me the total_volume by sybmbols,"SELECT symbol, 
+       SUM(quantity_traded * trade_price) AS total_volume
+FROM bulk_data
+GROUP BY symbol;"
+22,3297212-doc,documentation,,"Our business defines the trading activity from instituionals investors in the indian stock markets, so we want to deduce some insights from the available data to buy or sell the stock"

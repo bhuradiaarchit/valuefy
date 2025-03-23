@@ -110,11 +110,17 @@ def chat():
     global latest_df 
 
     latest_df = df
+
+    if df:
+        df = df.to_dict()
+    
+    if fig:
+        fig = fig.to_json()
     
     return jsonify({
         'query': query,
-        'data': df.to_dict(),
-        'figure': fig.to_json()
+        'data': df,
+        'figure': fig
     })
 
 @app.route('/analyze-news', methods=['GET'])  
