@@ -37,14 +37,23 @@ class YahooFinanceAPI:
         start_date = end_date - pd.Timedelta(days=7)
 
         df = yf.download(symbols, start=start_date, end=end_date)
+
+        #print(df)
         #df.to_csv('data.csv')
 
         pct_change_data = df['Close'].pct_change().iloc[len(df) - 1] * 100
         pct_change_sorted = pct_change_data.sort_values(ascending=False).dropna()
 
-        print(pct_change_sorted)
+        pct_change_data = pct_change_data.head(5)
         
-        return list(pct_change_sorted.items())
+        result = []
+        for symbol, value in pct_change_data.items():
+            if value is not None:
+                result.append((symbol, value))
+
+        result.sort(key=lambda x: x[1])
+        result.reverse()
+        return result
     
 
 class HighVolumers:

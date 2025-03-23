@@ -42,12 +42,12 @@
         </div>
     </div>
     <div class="container mt-5">
-        <h1>Welcome, {{ username }}!</h1>
+        <h3>Welcome, {{ username }}!</h3>
 
         <div class="row">
             <!-- High Volume Stocks Table -->
             <div class="col-md-6 table-container">
-                <h2 class="mt-4">High Volume Stocks</h2>
+                <h2 class="mt-4">Highest Activity of Instituitions</h2>
                 <table class="table table-striped" id="data-table">
                     <thead>
                         <tr>
@@ -61,7 +61,7 @@
             
             <!-- Max Gainers Table -->
             <div class="col-md-6 table-container">
-                <h2 class="mt-4">Max Gainers</h2>
+                <h2 class="mt-4">Max gainers by Hedge Funds</h2>
                 <table class="table table-striped" id="gainers-table">
                     <thead>
                         <tr>
@@ -74,154 +74,169 @@
             </div>
         </div>
     </div>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // ✅ Fetch High Volume Stocks
-            fetch("/high-volumers")
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.querySelector("#data-table tbody");
-                    if (!tableBody) {
-                        console.error("Table body for high volume stocks not found!");
-                        return;
-                    }
-                    tableBody.innerHTML = ""; // Clear previous entries
-    
-                    data.data.forEach(item => {
-                        let row = `<tr>
-                            <td>${item[0]}</td>
-                            <td>${parseFloat(item[1]).toLocaleString()}</td>
-                        </tr>`;
-                        tableBody.innerHTML += row;
-                    });
-                })
-                .catch(error => console.error("Error fetching high volume stocks:", error));
-    
-            // ✅ Fetch Gainers-Losers
-            fetch("/gainers-losers")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received Data:", data); // Debugging log
-                    const tableBody = document.querySelector("#gainers-table tbody");
-                    if (!tableBody) {
-                        console.error("Table body for gainers not found!");
-                        return;
-                    }
-                    tableBody.innerHTML = ""; // Clear old data
-    
-                    data.data.forEach(item => {
-                        let [symbol, change] = item;
-                        change = parseFloat(change); // Ensure it's a number
-                        if (!isNaN(change)) {
-                            let row = `<tr>
-                                <td>${symbol}</td>
-                                <td>${change.toFixed(2)}%</td>
-                            </tr>`;
-                            tableBody.innerHTML += row;
-                        }
-                    });
-                })
-                .catch(error => console.error("Error fetching max gainers:", error));
-                
-                fetch("/analyze-news")
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+       document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        // Load all data in parallel
+        const [highVolumersResponse, gainersResponse, newsResponse] = await Promise.all([
+            fetch("/high-volumers"),
+            fetch("/gainers-losers"),
+            fetch("/analyze-news")
+        ]);
+
+        // Check responses
+        if (!highVolumersResponse.ok) throw new Error(`Failed to load volume data: ${highVolumersResponse.status}`);
+        if (!gainersResponse.ok) throw new Error(`Failed to load gainers data: ${gainersResponse.status}`);
+        if (!newsResponse.ok) throw new Error(`Failed to load news data: ${newsResponse.status}`);
+
+        // Parse JSON responses in parallel
+        const [highVolumersData, gainersData, newsData] = await Promise.all([
+            highVolumersResponse.json(),
+            gainersResponse.json(),
+            newsResponse.json()
+        ]);
+
+        // ✅ Update High Volume Stocks Table
+        const highVolTableBody = document.querySelector("#data-table tbody");
+        if (highVolTableBody) {
+            highVolTableBody.innerHTML = ""; // Clear previous entries
+            
+            const symbols = highVolumersData.data.symbol;
+            const volumes = highVolumersData.data.total_volume;
+
+            for (let i = 0; i < Object.keys(symbols).length; i++) {
+                const formattedVolume = parseFloat(volumes[i]).toLocaleString();
+                const row = `<tr>
+                    <td class="fw-semibold">${symbols[i]}</td>
+                    <td class="text-end">${formattedVolume}</td>
+                </tr>`;
+                highVolTableBody.innerHTML += row;
+            }
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log("News Data:", data);
+
+        // ✅ Update Gainers-Losers Table
+        const gainersTableBody = document.querySelector("#gainers-table tbody");
+        if (gainersTableBody) {
+            gainersTableBody.innerHTML = ""; // Clear previous entries
+
+            gainersData.data.forEach(item => {
+                let [symbol, change] = item;
+                change = parseFloat(change); // Ensure it's a number
+                
+                if (!isNaN(change)) {
+                    // Determine color based on change
+                    const textColorClass = change >= 0 ? "text-success" : "text-danger";
+                    const changePrefix = change >= 0 ? "+" : "";
+                    
+                    const row = `<tr>
+                        <td class="fw-semibold">${symbol}</td>
+                        <td class="text-end ${textColorClass}">${changePrefix}${change.toFixed(2)}%</td>
+                    </tr>`;
+                    gainersTableBody.innerHTML += row;
+                }
+            });
+        }
+
+        // ✅ Update News Section
         const newsList = document.querySelector("#news-list");
         const newsCount = document.querySelector("#news-count");
         
-        if (!newsList) {
-            console.error("News list element not found!");
-            return;
-        }
-        
-        newsList.innerHTML = ""; // Clear loading message
-        
-        // Update news count
-        if (newsCount) {
-            newsCount.textContent = data.data.length;
-        }
-        
-        // Store the news data globally to access it when showing the modal
-        window.newsData = data.data;
-        
-        data.data.forEach((item, index) => {
-            // Determine badge color based on recommendation
-            let badgeColor = "secondary";
-            if (item.recommendation.includes("BUY")) {
-                badgeColor = "success";
-            } else if (item.recommendation.includes("SELL")) {
-                badgeColor = "danger";
-            } else if (item.recommendation.includes("HOLD")) {
-                badgeColor = "warning";
+        if (newsList) {
+            newsList.innerHTML = ""; // Clear loading message
+            
+            // Update news count
+            if (newsCount) {
+                newsCount.textContent = newsData.data.length;
             }
             
-            let newsItem = `
-                <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center news-item" 
-                    data-index="${index}" style="cursor: pointer;">
-                    <div class="text-truncate">${item.title}</div>
-                    <span class="badge bg-${badgeColor} ms-2">${item.recommendation.split(' ').pop()}</span>
-                </li>
-            `;
-            newsList.innerHTML += newsItem;
-        });
-        
-        // Add click event listeners to show modal
-        document.querySelectorAll('.news-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const index = this.getAttribute('data-index');
-                const newsItem = window.newsData[index];
-                
-                // Get modal elements
-                const modal = new bootstrap.Modal(document.getElementById('newsModal'));
-                const modalTitle = document.getElementById('newsModalLabel');
-                const modalBody = document.getElementById('newsModalBody');
-                
-                // Set modal content
-                modalTitle.textContent = newsItem.title;
-                
-                // Determine badge color for recommendation
+            // Store the news data globally to access it when showing the modal
+            window.newsData = newsData.data;
+            
+            newsData.data.forEach((item, index) => {
+                // Determine badge color based on recommendation
                 let badgeColor = "secondary";
-                if (newsItem.recommendation.includes("BUY")) {
+                let recommendation = item.recommendation.split(' ').pop();
+                
+                if (item.recommendation.includes("BUY")) {
                     badgeColor = "success";
-                } else if (newsItem.recommendation.includes("SELL")) {
+                } else if (item.recommendation.includes("SELL")) {
                     badgeColor = "danger";
-                } else if (newsItem.recommendation.includes("HOLD")) {
+                } else if (item.recommendation.includes("HOLD")) {
                     badgeColor = "warning";
                 }
                 
-                modalBody.innerHTML = `
-                    <p class="mb-4">${newsItem.content}</p>
-                    <div class="alert alert-${badgeColor}">
-                        <strong>Recommendation:</strong> ${newsItem.recommendation}
-                    </div>
+                let newsItem = `
+                    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center news-item shadow-sm mb-1 border-start border-${badgeColor} border-3" 
+                        data-index="${index}" style="cursor: pointer; transition: all 0.2s ease;">
+                        <div class="text-truncate">${item.title}</div>
+                        <span class="badge bg-${badgeColor} ms-2">${recommendation}</span>
+                    </li>
                 `;
-                
-                // Show the modal
-                modal.show();
+                newsList.innerHTML += newsItem;
             });
-        });
-    })
-    .catch(error => {
-        console.error("Error fetching news:", error);
-        const newsList = document.querySelector("#news-list");
-        if (newsList) {
-            newsList.innerHTML = `<li class="list-group-item text-danger">Error loading news: ${error.message}</li>`;
+            
+            // Add click event listeners and hover effects for news items
+            document.querySelectorAll('.news-item').forEach(item => {
+                // Add hover effect
+                item.addEventListener('mouseenter', function() {
+                    this.classList.add('bg-light');
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.classList.remove('bg-light');
+                });
+                
+                // Add click handler for modal
+                item.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    const newsItem = window.newsData[index];
+                    
+                    // Get modal elements
+                    const modal = new bootstrap.Modal(document.getElementById('newsModal'));
+                    const modalTitle = document.getElementById('newsModalLabel');
+                    const modalBody = document.getElementById('newsModalBody');
+                    
+                    // Set modal content
+                    modalTitle.textContent = newsItem.title;
+                    
+                    // Determine badge color for recommendation
+                    let badgeColor = "secondary";
+                    if (newsItem.recommendation.includes("BUY")) {
+                        badgeColor = "success";
+                    } else if (newsItem.recommendation.includes("SELL")) {
+                        badgeColor = "danger";
+                    } else if (newsItem.recommendation.includes("HOLD")) {
+                        badgeColor = "warning";
+                    }
+                    
+                    modalBody.innerHTML = `
+                        <p class="mb-4 lead">${newsItem.content}</p>
+                        <div class="alert alert-${badgeColor} d-flex align-items-center">
+                            <i class="bi ${badgeColor === 'success' ? 'bi-graph-up-arrow' : 
+                                          badgeColor === 'danger' ? 'bi-graph-down-arrow' : 
+                                          'bi-arrow-left-right'} me-2"></i>
+                            <div>
+                                <strong>Recommendation:</strong> ${newsItem.recommendation}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show the modal with animation
+                    modal.show();
+                });
+            });
         }
-    });
-        });
-    </script>
+
+    } catch (error) {
+        console.error("Dashboard error:", error);
+        // Show user-friendly error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3';
+        errorDiv.innerHTML = `<strong>Error loading dashboard data:</strong> ${error.message}`;
+        document.querySelector('.container').prepend(errorDiv);
+    }
+});
+    </script>    
     
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
