@@ -44,7 +44,7 @@ class YahooFinanceAPI:
         pct_change_data = df['Close'].pct_change().iloc[len(df) - 1] * 100
         pct_change_sorted = pct_change_data.sort_values(ascending=False).dropna()
 
-        pct_change_data = pct_change_data.head(5)
+        pct_change_data = pct_change_data.head(10)
         
         result = []
         for symbol, value in pct_change_data.items():
