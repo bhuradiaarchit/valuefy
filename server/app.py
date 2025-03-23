@@ -149,7 +149,7 @@ def high_volume_stocks():
 @app.route('/gainers-losers', methods = ['GET'])
 def gainers_losers():
     
-    print("🚀 /gainers-losers API was called!")
+    print("/gainers-losers API was called!")
     client = YahooFinanceAPI()
     dict_gainers_table = client.compare_with_latest_prices()
 
