@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Drawer,
@@ -12,17 +12,17 @@ import {
   Divider,
 } from "@mui/material";
 import { TrendingUp, MessageCircle, Newspaper, Settings, LogOut, Menu } from "lucide-react";
-import { logout } from "../store/slices/authSlice";
-import { RootState } from "../store/store";
+import { logoutAuth } from "../store/slices/authSlice";
+import { logoutPrompt } from "../store/slices/promptSlice";
 
 const Layout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { currentUser } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutAuth());
+    dispatch(logoutPrompt())
     navigate("/login");
   };
 

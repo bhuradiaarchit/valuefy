@@ -10,10 +10,16 @@ const authPersistConfig = {
   whitelist: ['currentUser']
 };
 
+const promptPersistConfig = {
+  key: 'prompt',
+  storage,
+  whitelist: ['responses'] // Persisting only responses
+};
+
 export const store = configureStore({
   reducer: {
     auth: persistReducer(authPersistConfig, authReducer),
-    prompt: promptReducer
+    prompt: persistReducer(promptPersistConfig, promptReducer)
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

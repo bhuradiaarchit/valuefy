@@ -24,7 +24,7 @@ const promptSlice = createSlice({
   initialState,
   reducers: {
     addResponse: (state, action: PayloadAction<PromptResponse>) => {
-      state.responses.unshift(action.payload);
+      state.responses.push(action.payload);
     },
     setPromptLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -34,9 +34,14 @@ const promptSlice = createSlice({
     },
     clearResponses: (state) => {
       state.responses = [];
+    },
+    logoutPrompt: (state) => {
+      state.responses = [];
+      state.error = null;
+      state.isLoading = false;
     }
   }
 });
 
-export const { addResponse, setPromptLoading, setPromptError, clearResponses } = promptSlice.actions;
+export const { addResponse, setPromptLoading, setPromptError, clearResponses ,logoutPrompt} = promptSlice.actions;
 export default promptSlice.reducer;
