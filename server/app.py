@@ -13,7 +13,7 @@ from helpers import YahooFinanceAPI, HighVolumers
 
 app = Flask(__name__)
 # Allow requests from localhost:5173
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://40.81.224.68:5173"]}})
 news_service = NewsAnalyzerService()
 
 app.secret_key = "secretkey"
