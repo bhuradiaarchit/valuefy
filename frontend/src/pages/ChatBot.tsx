@@ -6,8 +6,9 @@ import { Send } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { addResponse, setPromptLoading, setPromptError } from "../store/slices/promptSlice";
 import { RootState } from "../store/store";
-import Plot from "react-plotlyjs";
+import Plot from "react-plotly.js";
 import { getChatResponse } from "../services/api";
+import "../styles/chatbot.css";
 
 const ChatBot = () => {
   const [prompt, setPrompt] = useState("");
@@ -25,9 +26,8 @@ const ChatBot = () => {
     try {
       const response = await getChatResponse(prompt);
       console.log(response);
-      
+
       dispatch(addResponse(response));
-      setPrompt("");
       toast.success("Analysis received!");
     } catch (error) {
       dispatch(setPromptError((error as Error).message));
@@ -35,6 +35,22 @@ const ChatBot = () => {
     } finally {
       dispatch(setPromptLoading(false));
     }
+  };
+
+  const downloadCSV = (data: any) => {
+    const headers = "Symbol,Total Volume\n";
+    const rows = Object.keys(data.symbol)
+      .map((index) => `${data.symbol[index]},${data.total_volume[index]}`)
+      .join("\n");
+    
+    const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "data_table.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -69,9 +85,6 @@ const ChatBot = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white rounded-lg shadow-md p-6"
           >
-            <p className="text-sm text-gray-500 mb-2">
-              {new Date(response.timestamp).toLocaleString()}
-            </p>
             <p className="text-gray-700 font-medium mb-4">{response.prompt}</p>
             <h3 className="text-lg font-semibold">SQL Query:</h3>
             <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto">{response.query}</pre>
@@ -79,23 +92,25 @@ const ChatBot = () => {
             {response.data && (
               <div className="mt-4">
                 <h3 className="text-lg font-semibold">Data Table:</h3>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md mb-2"
+                  onClick={() => downloadCSV(response.data)}
+                >
+                  Download CSV
+                </button>
                 <div className="overflow-auto">
                   <table className="w-full border-collapse border border-gray-300">
                     <thead>
                       <tr className="bg-gray-200">
-                        {Object.keys(response.data).map((key) => (
-                          <th key={key} className="border p-2">{key}</th>
-                        ))}
+                        <th className="border p-2">Symbol</th>
+                        <th className="border p-2">Total Volume</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {response.data[Object.keys(response.data)[0]].map((_, rowIndex) => (
-                        <tr key={rowIndex} className="border">
-                          {Object.keys(response.data).map((key) => (
-                            <td key={key} className="border p-2">
-                              {response.data[key][rowIndex]}
-                            </td>
-                          ))}
+                      {Object.keys(response.data.symbol).slice(0, 10).map((index) => (
+                        <tr key={index} className="border">
+                          <td className="border p-2">{response.data.symbol[index]}</td>
+                          <td className="border p-2">{response.data.total_volume[index]}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -107,9 +122,15 @@ const ChatBot = () => {
             {response.figure && (
               <div className="mt-4">
                 <h3 className="text-lg font-semibold">Plot:</h3>
-                <Plot data={response.figure.data} layout={response.figure.layout} />
+                <Plot
+                  data={response.figure.data}
+                  layout={response.figure.layout}
+                  style={{ width: "100%", height: "400px" }}
+                  config={{ responsive: true }}
+                />
               </div>
             )}
+
           </motion.div>
         ))}
       </div>
