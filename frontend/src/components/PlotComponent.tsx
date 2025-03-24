@@ -11,7 +11,7 @@ const PlotComponent = ({ figure }: { figure: any }) => {
     }
   }, [figure]);
 
-  return <div ref={plotRef} className="w-full h-[400px]"></div>;
+  return <div ref={plotRef} className="w-full h-[400px] text-center "></div>;
 };
 
 export default PlotComponent;
