@@ -121,7 +121,7 @@ const ChatBot = () => {
 
             {response.figure && (
               <div className="mt-4">
-                <h3 className="text-lg font-semibold">Plot:</h3>
+                <h3 className="text-lg font-semibold">Plot :</h3>
                 <Plot
                   data={response.figure.data}
                   layout={response.figure.layout}
