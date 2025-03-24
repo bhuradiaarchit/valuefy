@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP to SQL</title>
+    <script>
+        async function sendQuery() {
+            let query = document.getElementById("query").value;
+            let response = await fetch("/generate_sql", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: query })
+            });
+            let data = await response.json();
+            document.getElementById("result").innerText = "SQL Query: " + data.sql_query;
+        }
+    </script>
+</head>
+<body>
+    <h1>NLP to SQL Converter</h1>
+    <input type="text" id="query" placeholder="Enter natural language query">
+    <button onclick="sendQuery()">Convert to SQL</button>
+    <p id="result"></p>
+</body>
+</html>
