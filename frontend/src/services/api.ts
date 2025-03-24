@@ -1,7 +1,7 @@
 import { toast } from 'react-hot-toast';
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "http://40.81.224.68:5000";
 
 const API_DELAY = 1000; // Simulated API delay
 
