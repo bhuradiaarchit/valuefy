@@ -98,7 +98,7 @@ class DataToPostgres():
             'dbname': os.getenv('DB_NAME')
         }
 
-        if self.null_to_insert(db_config, df) == True:
-            self.dataframe_to_postgres(db_config, df, 'bulk_data', 'append')
+        
+        self.dataframe_to_postgres(db_config, df, 'bulk_data', 'append')
         
         self.delete_file(os.getenv('CSV_FILE_PATH'))

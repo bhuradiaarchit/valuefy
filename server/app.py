@@ -125,7 +125,7 @@ def analyze_news():
    client = NewsAnalyzerService()
    news = client.execution_flow()
    
-   return jsonify({'data': news})
+   return jsonify({'data': sanitize_json(news)})
 
 @app.route('/download', methods=['GET'])
 def download_csv():
@@ -150,7 +150,7 @@ def high_volume_stocks():
     client = HighVolumers()
     dict_vol_table = client.execution_flow()
 
-    return jsonify({'data': dict_vol_table})
+    return jsonify({'data': sanitize_json(dict_vol_table)})
 
 @app.route('/gainers-losers', methods = ['GET'])
 def gainers_losers():
@@ -159,11 +159,37 @@ def gainers_losers():
     client = YahooFinanceAPI()
     dict_gainers_table = client.compare_with_latest_prices()
 
-    return jsonify({'data': dict_gainers_table})
+    return jsonify({'data': sanitize_json(dict_gainers_table)})
 
 @app.route('/chatBot')
 def chat_bot():
     return render_template('chat.html')
+
+import math
+
+@app.after_request
+def auto_sanitize_response(response):
+    if response.content_type == 'application/json':
+        try:
+            data = response.get_json()
+            cleaned = sanitize_json(data)
+            response.set_data(json.dumps(cleaned))
+        except Exception as e:
+            pass  # fallback if response isn't a dict
+    return response
+
+
+def sanitize_json(data):
+    """Recursively replaces NaN, inf, -inf with None so it's safe for JSON."""
+    if isinstance(data, dict):
+        return {k: sanitize_json(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_json(i) for i in data]
+    elif isinstance(data, float) and (math.isnan(data) or math.isinf(data)):
+        return None
+    else:
+        return data
+
 
 if __name__ == '__main__':
     client = LLMtoSQL()
