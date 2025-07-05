@@ -4,15 +4,24 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from collections import OrderedDict
+from urllib.parse import quote_plus
 
 # Load environment variables
 load_dotenv()
 
 class YahooFinanceAPI:
     def __init__(self):
-        self.db_url = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@" \
-                      f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-        self.engine = create_engine(self.db_url)
+
+        db_config = {
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD'),
+            'host': os.getenv('DB_HOST'),
+            'port': os.getenv('DB_PORT'), 
+            'dbname': os.getenv('DB_NAME')
+        }
+        encoded_password = quote_plus(db_config['password'])
+        db_url = f"postgresql://{db_config['user']}:{encoded_password}@{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
+        self.engine = create_engine(db_url)
 
     def call_symbols_from_postgres(self):
         query = """
@@ -22,6 +31,7 @@ class YahooFinanceAPI:
 
         try:
             with self.engine.connect() as conn:
+                print(conn)
                 df_bulk_data = pd.read_sql_query(query, conn)
         except Exception as e:
             print(f"Error fetching data from PostgreSQL: {e}")
@@ -33,13 +43,15 @@ class YahooFinanceAPI:
         symbols = self.call_symbols_from_postgres()
         symbols = [symbol + ".NS" for symbol in symbols]
         
+        print(symbols)
+        
         end_date = pd.Timestamp.today().date()
         start_date = end_date - pd.Timedelta(days=7)
 
         df = yf.download(symbols, start=start_date, end=end_date)
 
         #print(df)
-        #df.to_csv('data.csv')
+        df.to_csv('data.csv')
 
         pct_change_data = df['Close'].pct_change().iloc[len(df) - 1] * 100
         pct_change_sorted = pct_change_data.sort_values(ascending=False).dropna()
@@ -58,9 +70,16 @@ class YahooFinanceAPI:
 
 class HighVolumers:
     def __init__(self):
-        self.db_url = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@" \
-                      f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-        self.engine = create_engine(self.db_url)
+        db_config = {
+            'user': os.getenv('DB_USER'),
+            'password': os.getenv('DB_PASSWORD'),
+            'host': os.getenv('DB_HOST'),
+            'port': os.getenv('DB_PORT'), 
+            'dbname': os.getenv('DB_NAME')
+        }
+        encoded_password = quote_plus(db_config['password'])
+        db_url = f"postgresql://{db_config['user']}:{encoded_password}@{db_config['host']}:{db_config['port']}/{db_config['dbname']}"
+        self.engine = create_engine(db_url)
 
     def top_10_volume_gainers(self):
         query = """

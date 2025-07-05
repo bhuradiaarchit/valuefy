@@ -90,7 +90,7 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
-
+    
         // Format large numbers
         function formatNumber(num) {
             if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
@@ -98,20 +98,18 @@
             if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
             return num.toString();
         }
-
+    
         // Fetch and display dashboard data
         async function loadDashboard() {
             try {
-                const [volumeRes, gainersRes, newsRes] = await Promise.all([
+                const [volumeRes, newsRes] = await Promise.all([
                     fetch('/high-volumers'),
-                    fetch('/gainers-losers'),
                     fetch('/analyze-news')
                 ]);
-
+    
                 const volumeData = await volumeRes.json();
-                const gainersData = await gainersRes.json();
                 const newsData = await newsRes.json();
-
+    
                 // Update volume table
                 const volumeTable = document.getElementById('volume-table');
                 volumeTable.innerHTML = Object.keys(volumeData.data.symbol)
@@ -121,26 +119,37 @@
                             <td class="volume-value">${formatNumber(volumeData.data.total_volume[key])}</td>
                         </tr>
                     `).join('');
-
-                // Update gainers table
-                const gainersTable = document.getElementById('gainers-table');
-                gainersTable.innerHTML = gainersData.data
-                    .map(([symbol, change]) => `
-                        <tr>
-                            <td>${symbol}</td>
-                            <td class="change-value ${Number(change) >= 0 ? 'positive' : 'negative'}">
-                                ${Number(change) >= 0 ? '+' : ''}${Number(change).toFixed(2)}%
-                            </td>
-                        </tr>
-                    `).join('');
-
+    
+                // Try gainers/losers fetch separately
+                try {
+                    const gainersRes = await fetch('/gainers-losers');
+                    if (!gainersRes.ok) throw new Error('Gainers/losers API returned error');
+                    const gainersData = await gainersRes.json();
+    
+                    const gainersTable = document.getElementById('gainers-table');
+                    gainersTable.innerHTML = gainersData.data
+                        .map(([symbol, change]) => `
+                            <tr>
+                                <td>${symbol}</td>
+                                <td class="change-value ${Number(change) >= 0 ? 'positive' : 'negative'}">
+                                    ${Number(change) >= 0 ? '+' : ''}${Number(change).toFixed(2)}%
+                                </td>
+                            </tr>
+                        `).join('');
+                } catch (gainerErr) {
+                    console.warn('Gainers/Losers data not available:', gainerErr);
+                    document.getElementById('gainers-table').innerHTML = `
+                        <tr><td colspan="2" style="text-align:center; color: gray;">Gainers data unavailable</td></tr>
+                    `;
+                }
+    
                 // Update news grid
                 const newsGrid = document.getElementById('news-grid');
                 newsGrid.innerHTML = newsData.data
                     .map(news => {
                         const type = news.recommendation.includes('BUY') ? 'buy' :
-                                   news.recommendation.includes('SELL') ? 'sell' : 'hold';
-                        
+                                     news.recommendation.includes('SELL') ? 'sell' : 'hold';
+    
                         return `
                             <div class="news-card ${type}">
                                 <h4 class="news-title">${news.title}</h4>
@@ -149,11 +158,10 @@
                             </div>
                         `;
                     }).join('');
-
+    
                 // Update news count
                 document.getElementById('news-count').textContent = `${newsData.data.length} updates`;
-
-
+    
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 document.querySelector('.container').innerHTML += `
@@ -163,12 +171,13 @@
                 `;
             }
         }
-
+    
         // Initial load
         loadDashboard();
-
+    
         // Refresh data every 5 minutes
         setInterval(loadDashboard, 300000);
     </script>
+    
 </body>
 </html>
